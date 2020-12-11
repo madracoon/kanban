@@ -1,0 +1,18 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 2px;
+  background: rgba(219, 219, 219, 0.562);
+  margin-top: 5px;
+}
+
+.author {
+  color: black;
+  text-decoration: underline;
+}
+
+.text {
+  white-space: pre-wrap;
+}
+

@@ -1,0 +1,1 @@
+export { actions, reducer, selectors } from './slice';
