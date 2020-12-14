@@ -45,6 +45,10 @@ function List(props: Props) {
     }
   }
 
+  const handleRemoveList = () => {
+    dispatch(actions.lists.removeList({id: id}))
+  }
+
   const cardList = cards.map((item: any, index: number) =>
       <Card key={index} {...item} />
     )
@@ -62,7 +66,7 @@ function List(props: Props) {
           <div className={`${styles.listHeader}` + (!isTitleVisible ? ` ${styles.isHidden}` : '')}  onClick={handleRenameClick}>{name}</div>
             {cardList}
           <div className={styles.addCard} onClick={handleAddCardClick}>Add new</div>
-          {/* <div className="add-card" onClick={handleRemoveList}>Remove</div> */}
+          <div className="add-card" onClick={handleRemoveList}>Remove</div>
         </div>
       </div>
   )

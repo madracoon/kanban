@@ -49,6 +49,17 @@ const updateCard = createAsyncThunk(
   }
 )
 
+const removeCardsByIds = createAsyncThunk(
+  'cards/removeCardsByIds',
+  async (ids: Array<number>) => {
+    const cards = JSON.parse(localStorage.getItem("cards") as string)
+    // localstorage work
+    const toRemove = new Set(ids);
+    const updatedCards = cards.filter((item: Card) => !toRemove.has(item.id));
+    localStorage.setItem("cards", JSON.stringify(updatedCards))
+  }
+)
+
 const slice = createSlice({
   name: 'cards',
   initialState: initialState,
@@ -69,6 +80,12 @@ const slice = createSlice({
     builder.addCase(updateCard.fulfilled, (state: any, action: any) => {
       state.cards = state.cards.map((item: any) => item.id === action.payload.id ? action.payload : item)
     })
+
+    builder.addCase(removeCardsByIds.fulfilled, (state: any, action: any) => {
+      const toRemove = new Set(action.payload);
+      const updatedCards = state.cards.filter((item: Card) => !toRemove.has(item.id));
+      state.cards = updatedCards;
+    })
   }
 })
 
@@ -77,7 +94,8 @@ export const actions = {
   fetchAllCards,
   fetchCardsByListId,
   addCard,
-  updateCard
+  updateCard,
+  removeCardsByIds
 };
 
 export const { reducer } = slice;

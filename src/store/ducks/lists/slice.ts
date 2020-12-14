@@ -1,4 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
+import { getListTreeIds } from "utils"
+import { batch } from 'react-redux'
+import { actions as allActions } from 'store';
 
 const initialState = {
   lists: [],  
@@ -39,6 +42,30 @@ const renameList = createAsyncThunk(
   }
 )
 
+const removeList = createAsyncThunk(
+  'lists/removeList',
+  async (data: any, thunkAPI) => {
+    const { id } = data;
+    const lists = JSON.parse(localStorage.getItem("lists") as string)
+    
+    // localstorage work
+    const toRemove = new Set([id]);
+    const updatedList = lists.filter((item: any) => !toRemove.has(item.id));
+    localStorage.setItem("lists", JSON.stringify(updatedList))
+
+    // store work
+    const treeIds = getListTreeIds(thunkAPI.getState(), id)
+    const dispatch = thunkAPI.dispatch
+
+    batch(() => {
+      dispatch(allActions.cards.removeCardsByIds(treeIds.cards))
+      dispatch(allActions.comments.removeCommentsByIds(treeIds.comments))
+    })
+
+    return data
+  }
+)
+
 const slice = createSlice({
   name: 'lists',
   initialState: initialState,
@@ -59,6 +86,12 @@ const slice = createSlice({
     builder.addCase(renameList.fulfilled, (state: any, action: any) => {
       state.lists = state.lists.map((item: any) => item.id === action.payload.id ? action.payload : item)
     })
+
+    builder.addCase(removeList.fulfilled, (state: any, action: any) => {
+      const toRemove = new Set([action.payload.id]);
+      const updatedLists = state.lists.filter((item: any) => !toRemove.has(item.id));
+      state.lists = updatedLists;
+    });
   }
 })
 
@@ -67,6 +100,7 @@ export const actions = {
   fetchLists,
   renameList,
   addList,
+  removeList
 };
 
 export const { reducer } = slice;

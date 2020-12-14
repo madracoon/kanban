@@ -25,6 +25,17 @@ const addComment = createAsyncThunk(
   }
 )
 
+const removeCommentsByIds = createAsyncThunk(
+  'comments/removeCommentsByIds',
+  async (ids: Array<number>) => {
+    const cards = JSON.parse(localStorage.getItem("comments") as string)
+    // localstorage work
+    const toRemove = new Set(ids);
+    const updatedComments = cards.filter((item: Comment) => !toRemove.has(item.id));
+    localStorage.setItem("comments", JSON.stringify(updatedComments))
+  }
+)
+
 const slice = createSlice({
   name: 'comments',
   initialState: initialState,
@@ -40,13 +51,19 @@ const slice = createSlice({
     builder.addCase(addComment.fulfilled, (state, action) => {
       state.comments = state.comments.concat(action.payload as any)
     });
+    builder.addCase(removeCommentsByIds.fulfilled, (state: any, action: any) => {
+      const toRemove = new Set(action.payload);
+      const updatedComments = state.comments.filter((item: Comment) => !toRemove.has(item.id));
+      state.cards = updatedComments;
+    })
   }
 })
 
 export const actions = {
   ...slice.actions,
   fetchComments,
-  addComment
+  addComment,
+  removeCommentsByIds
 };
 
 export const { reducer } = slice;
