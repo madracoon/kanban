@@ -1,5 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
+import { getCardTreeIds } from 'utils'
 import { Card } from 'types'
+import { batch } from 'react-redux'
+import { actions as allActions } from 'store';
 
 const initialState = {
   cards: [],  
@@ -51,12 +54,22 @@ const updateCard = createAsyncThunk(
 
 const removeCardsByIds = createAsyncThunk(
   'cards/removeCardsByIds',
-  async (ids: Array<number>) => {
-    const cards = JSON.parse(localStorage.getItem("cards") as string)
+  async (ids: Array<number>, thunkAPI) => {
     // localstorage work
+    const cards = JSON.parse(localStorage.getItem("cards") as string)
     const toRemove = new Set(ids);
     const updatedCards = cards.filter((item: Card) => !toRemove.has(item.id));
-    localStorage.setItem("cards", JSON.stringify(updatedCards))
+    localStorage.setItem("cards", JSON.stringify(updatedCards));
+
+    // store work
+    const treeIds = getCardTreeIds(thunkAPI.getState(), ids)
+    const dispatch = thunkAPI.dispatch
+
+    batch(() => {
+      dispatch(allActions.comments.removeCommentsByIds(treeIds.comments))
+    })
+
+    return ids;
   }
 )
 

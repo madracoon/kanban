@@ -59,7 +59,6 @@ const removeList = createAsyncThunk(
 
     batch(() => {
       dispatch(allActions.cards.removeCardsByIds(treeIds.cards))
-      dispatch(allActions.comments.removeCommentsByIds(treeIds.comments))
     })
 
     return data

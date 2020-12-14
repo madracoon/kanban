@@ -102,6 +102,12 @@ function Card(props: any) {
     if (cardCommentInput.current) cardCommentInput.current.value = '';
   }
 
+  //////////////
+
+  const handleRemoveCard = () => {
+    dispatch(actions.cards.removeCardsByIds([id]))
+  }
+
   const onClick = () => {
     openModal();
   }
@@ -118,6 +124,7 @@ function Card(props: any) {
           style={customStyles}
           contentLabel="Example Modal"
         >
+          <button onClick={handleRemoveCard}>Delete Task</button>
           <button onClick={closeModal}>close</button>
           <div className={styles.headerBlock}>
             <div>Task:</div>

@@ -4,3 +4,9 @@ export const getListTreeIds = (data, id) => {
 
   return { cards: cardsIds, comments: commentsIds }
 }
+
+export const getCardTreeIds = (data, ids) => {
+  const commentsIds = data.comments.comments.filter((item) => ids.includes(item.cardId)).map((elem) => elem.id);
+  
+  return { comments: commentsIds }
+}
