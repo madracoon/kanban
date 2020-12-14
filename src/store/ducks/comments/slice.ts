@@ -54,7 +54,7 @@ const slice = createSlice({
     builder.addCase(removeCommentsByIds.fulfilled, (state: any, action: any) => {
       const toRemove = new Set(action.payload);
       const updatedComments = state.comments.filter((item: Comment) => !toRemove.has(item.id));
-      state.cards = updatedComments;
+      state.comments = updatedComments;
     })
   }
 })
