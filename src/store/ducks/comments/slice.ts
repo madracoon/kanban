@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import { Comment } from 'types'
+import { addNewComment } from "localStorage"
 
 const initialState = {
   comments: [],  
@@ -16,30 +17,20 @@ const fetchComments = createAsyncThunk(
 const addComment = createAsyncThunk(
   'comments/addComment',
   async (data: any) => {
-    const comments = JSON.parse(localStorage.getItem("comments") as string)
-    const lastId = comments.sort((a: Comment, b: Comment) => a.id - b.id)[comments.length - 1].id || 0
-    const updatedComments = comments.concat({id: lastId + 1, ...data})
-    localStorage.setItem("comments", JSON.stringify(updatedComments))
-
-    return {id: lastId + 1, ...data}
-  }
-)
-
-const removeCommentsByIds = createAsyncThunk(
-  'comments/removeCommentsByIds',
-  async (ids: Array<number>) => {
-    const cards = JSON.parse(localStorage.getItem("comments") as string)
-    // localstorage work
-    const toRemove = new Set(ids);
-    const updatedComments = cards.filter((item: Comment) => !toRemove.has(item.id));
-    localStorage.setItem("comments", JSON.stringify(updatedComments))
+    return addNewComment(data);
   }
 )
 
 const slice = createSlice({
   name: 'comments',
   initialState: initialState,
-  reducers: {},
+  reducers: {
+    removeCommentsByIds: (state, action) => {
+      const toRemove = new Set(action.payload);
+      const updatedComments = state.comments.filter((item: Comment) => !toRemove.has(item.id));
+      state.comments = updatedComments;
+    }
+  },
   extraReducers: (builder) => {
     builder.addCase(fetchComments.pending, (state) => {
       state.isFetching = true;
@@ -51,11 +42,6 @@ const slice = createSlice({
     builder.addCase(addComment.fulfilled, (state, action) => {
       state.comments = state.comments.concat(action.payload as any)
     });
-    builder.addCase(removeCommentsByIds.fulfilled, (state: any, action: any) => {
-      const toRemove = new Set(action.payload);
-      const updatedComments = state.comments.filter((item: Comment) => !toRemove.has(item.id));
-      state.comments = updatedComments;
-    })
   }
 })
 
@@ -63,7 +49,6 @@ export const actions = {
   ...slice.actions,
   fetchComments,
   addComment,
-  removeCommentsByIds
 };
 
 export const { reducer } = slice;

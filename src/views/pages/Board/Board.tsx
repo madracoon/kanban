@@ -3,18 +3,16 @@ import styles from './board.module.scss'
 import List from './components/List'
 import { actions } from 'store/ducks/lists'
 import { actions as allActions } from 'store'
-import { useSelector, useDispatch, batch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 function Board() {
   const dispatch = useDispatch();
   const storeLists = useSelector((state: any) => state.lists.lists)
 
   useEffect(() => {
-    batch(() => {
-      dispatch(actions.fetchLists());
-      dispatch(allActions.cards.fetchAllCards())
-      dispatch(allActions.comments.fetchComments())
-    })
+    dispatch(actions.fetchLists());
+    dispatch(allActions.cards.fetchAllCards())
+    dispatch(allActions.comments.fetchComments())
   }, []);
 
   const handleAddColumnClick = () => {

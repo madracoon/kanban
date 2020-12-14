@@ -105,7 +105,7 @@ function Card(props: any) {
   //////////////
 
   const handleRemoveCard = () => {
-    dispatch(actions.cards.removeCardsByIds([id]))
+    dispatch(actions.cards.removeCard(id));
   }
 
   const onClick = () => {

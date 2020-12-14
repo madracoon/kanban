@@ -3,6 +3,7 @@ import { getCardTreeIds } from 'utils'
 import { Card } from 'types'
 import { batch } from 'react-redux'
 import { actions as allActions } from 'store';
+import { getAllCards, addNewCard, destroyCards, updateCard as updateDbCard } from "localStorage"
 
 const initialState = {
   cards: [],  
@@ -12,71 +13,49 @@ const initialState = {
 const fetchAllCards = createAsyncThunk(
   'cards/fetchCardsByListId',
   async () => {
-    return JSON.parse(localStorage.getItem("cards") as string)
+    return getAllCards();
   }
-); 
-
-const fetchCardsByListId = createAsyncThunk(
-  'cards/fetchCardsByListId',
-  async () => {
-    return JSON.parse(localStorage.getItem("cards") as string)
-  }
-); 
+);
 
 const addCard = createAsyncThunk(
   'cards/addList',
   async (data: any) => {
-    const cards = JSON.parse(localStorage.getItem("cards") as string)
-    const lastId = cards.sort((a: Card, b: Card) => a.id - b.id)[cards.length - 1].id || 0
-    const updatedCards = cards.concat({id: lastId + 1, ...data})
-
-    localStorage.setItem("cards", JSON.stringify(updatedCards))
-
-    return {id: lastId + 1, ...data}
+    return addNewCard(data);
   }
 )
 
 const updateCard = createAsyncThunk(
   'cards/updateCard',
   async (data: any) => {
-    const {id, name, details} = data;
-    const cards = JSON.parse(localStorage.getItem("cards") as string)
-    const updatedCards = cards.map((item: Card) => { 
-      if (item.id === id) item = data;
-      return item
-    })
-    
-    localStorage.setItem("cards", JSON.stringify(updatedCards))
-
-    return data
+    return updateDbCard(data);
   }
 )
 
-const removeCardsByIds = createAsyncThunk(
-  'cards/removeCardsByIds',
-  async (ids: Array<number>, thunkAPI) => {
-    // localstorage work
-    const cards = JSON.parse(localStorage.getItem("cards") as string)
-    const toRemove = new Set(ids);
-    const updatedCards = cards.filter((item: Card) => !toRemove.has(item.id));
-    localStorage.setItem("cards", JSON.stringify(updatedCards));
-
-    // store work
-    const treeIds = getCardTreeIds(thunkAPI.getState(), ids)
+const removeCard = createAsyncThunk(
+  'cards/removeCard',
+  async (id: number, thunkAPI) => {
+    const treeIds = destroyCards([id]);
     const dispatch = thunkAPI.dispatch
 
     batch(() => {
-      dispatch(allActions.comments.removeCommentsByIds(treeIds.comments))
+      dispatch(allActions.cards.removeCardsByIds([id]));
+      dispatch(allActions.comments.removeCommentsByIds(treeIds.comments));
     })
 
-    return ids;
+    return id;
   }
 )
 
 const slice = createSlice({
   name: 'cards',
   initialState: initialState,
-  reducers: {},
+  reducers: {
+    removeCardsByIds: (state, action) => {
+      const toRemove = new Set(action.payload);
+      const updatedCards = state.cards.filter((item: Card) => !toRemove.has(item.id));
+      state.cards = updatedCards;
+    }
+  },
   extraReducers: (builder) => {
     builder.addCase(fetchAllCards.pending, (state) => {
       state.isFetching = true;
@@ -93,22 +72,15 @@ const slice = createSlice({
     builder.addCase(updateCard.fulfilled, (state: any, action: any) => {
       state.cards = state.cards.map((item: any) => item.id === action.payload.id ? action.payload : item)
     })
-
-    builder.addCase(removeCardsByIds.fulfilled, (state: any, action: any) => {
-      const toRemove = new Set(action.payload);
-      const updatedCards = state.cards.filter((item: Card) => !toRemove.has(item.id));
-      state.cards = updatedCards;
-    })
   }
 })
 
 export const actions = {
   ...slice.actions,
   fetchAllCards,
-  fetchCardsByListId,
   addCard,
   updateCard,
-  removeCardsByIds
+  removeCard
 };
 
 export const { reducer } = slice;

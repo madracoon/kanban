@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
-import { getListTreeIds } from "utils"
+// import { getListTreeIds } from "utils"
 import { batch } from 'react-redux'
 import { actions as allActions } from 'store';
+import { getAllLists, addNewList, updateList, destroyLists } from 'localStorage';
 
 const initialState = {
   lists: [],  
@@ -11,34 +12,25 @@ const initialState = {
 const fetchLists = createAsyncThunk(
   'lists/fetchLists',
   async () => {
-    return JSON.parse(localStorage.getItem("lists") as string)
+    return getAllLists();
   }
 ); 
 
 const addList = createAsyncThunk(
   'lists/addList',
   async (data: any) => {
-    const lists = JSON.parse(localStorage.getItem("lists") as string)
-    const updatedLists = lists.concat(data)
-    localStorage.setItem("lists", JSON.stringify(updatedLists))
+    addNewList(data);
 
-    return data
+    return data;
   }
 )
 
 const renameList = createAsyncThunk(
   'lists/updateList',
   async (data: any) => {
-    const {id, name} = data;
-    const lists = JSON.parse(localStorage.getItem("lists") as string)
-    const updatedList = lists.map((item: any) => { 
-      if (item.id === id) item.name = name;
-      return item
-    })
-    
-    localStorage.setItem("lists", JSON.stringify(updatedList))
+    updateList(data);
 
-    return data
+    return data;
   }
 )
 
@@ -46,22 +38,15 @@ const removeList = createAsyncThunk(
   'lists/removeList',
   async (data: any, thunkAPI) => {
     const { id } = data;
-    const lists = JSON.parse(localStorage.getItem("lists") as string)
-    
-    // localstorage work
-    const toRemove = new Set([id]);
-    const updatedList = lists.filter((item: any) => !toRemove.has(item.id));
-    localStorage.setItem("lists", JSON.stringify(updatedList))
-
-    // store work
-    const treeIds = getListTreeIds(thunkAPI.getState(), id)
+    const treeIds = destroyLists([id]);
     const dispatch = thunkAPI.dispatch
 
     batch(() => {
       dispatch(allActions.cards.removeCardsByIds(treeIds.cards))
+      dispatch(allActions.comments.removeCommentsByIds(treeIds.comments))
     })
 
-    return data
+    return data;
   }
 )
 
